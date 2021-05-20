@@ -1,23 +1,110 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import "./App.css";
+import { Container } from "./components/Container";
+import styled from "styled-components";
+import { Input, DatePicker, Button, Checkbox } from "antd";
+import { TodoItem } from "./components/TodoItem";
+import { add_todo } from "./store/actions/index";
+import { set_filter, ALL, COMPLETED, ACTIVE } from "./store/actions";
 
+// sub-components
+const Title = styled.h1`
+  text-align: center;
+  margin-bottom: 10px;
+`;
+
+const InputBlock = styled.div`
+  display: flex;
+  justify-content: space-between;
+`;
+// main component
 function App() {
+  function onChangeDate(date) {
+    setDate(date);
+  }
+  // hooks
+  const [text, setText] = useState("");
+  const [date, setDate] = useState("");
+
+  // store
+  const todos = useSelector((state) => state.todos);
+  const dispatch = useDispatch();
+  const currentFilter = useSelector((state) => state.filter);
+  // onClick button add
+  const onAdd = () => {
+    text && date && dispatch(add_todo(text, date));
+  };
+
+  const filtered_todos = () => {
+    switch (currentFilter) {
+      case ALL:
+        return todos;
+      case COMPLETED:
+        return todos.filter((el) => el.checked === true);
+      case ACTIVE:
+        return todos.filter((el) => el.checked === false);
+      default:
+        return todos;
+    }
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Container>
+        <Title>Todo List</Title>
+        <InputBlock>
+          <Input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="type sath..."
+            style={{ width: 350 }}
+          />
+          <DatePicker value={date} onChange={onChangeDate} />
+          <Button onClick={onAdd} type="primary">
+            Add
+          </Button>
+        </InputBlock>
+        {/* checkboxs */}
+        <div>
+          {/* 1 */}
+          <Checkbox
+            checked={currentFilter === ALL}
+            style={{ marginRight: 10 }}
+            onChange={() => {
+              dispatch(set_filter(ALL));
+            }}
+          >
+            All
+          </Checkbox>
+          {/* 2 */}
+          <Checkbox
+            checked={currentFilter === COMPLETED}
+            style={{ marginRight: 10 }}
+            onChange={() => {
+              dispatch(set_filter(COMPLETED));
+            }}
+          >
+            Completed
+          </Checkbox>
+          {/* 3 */}
+          <Checkbox
+            checked={currentFilter === ACTIVE}
+            style={{ marginRight: 10 }}
+            onChange={() => {
+              dispatch(set_filter(ACTIVE));
+            }}
+          >
+            Active
+          </Checkbox>
+        </div>
+
+        <div>
+          {filtered_todos().map((el, id) => {
+            return <TodoItem key={id} id={el.id} todo={el} />;
+          })}
+        </div>
+      </Container>
     </div>
   );
 }
